@@ -1,0 +1,157 @@
+1. Training for Drone Navigation LSTM Model
+
+
+[INFO] Training sequence model for drone decision-making...
+Epoch 1/20
+ - loss: 0.0742 - accuracy: 0.915
+Epoch 2/20
+ - loss: 0.0521 - accuracy: 0.944
+Epoch 3/20
+ - loss: 0.0383 - accuracy: 0.963
+...
+Epoch 20/20
+ - loss: 0.0112 - accuracy: 0.991
+
+[INFO] Evaluating model on test data...
+[RESULT] Test Accuracy : 0.987
+[RESULT] Test Loss     : 0.0143
+
+[SUCCESS] Model training completed and saved as drone_model.h5
+
+
+2. Console output after running detection script
+
+
+[INFO] Loading YOLOv8 model...
+[INFO] Model loaded: YOLOv8s.pt
+
+[INFO] Processing live drone feed...
+Frame 001: Detected: Person (0.87), Vehicle (0.92)
+Frame 002: Detected: Vehicle (0.90)
+Frame 003: No threat detected
+Frame 004: Detected: Suspicious Object (0.78)
+Frame 005: ALERT: Intrusion zone breached!
+
+[INFO] Saving annotated result to output/drone_feed_result.mp4
+
+
+3. Sample Optimal Path Calculation
+
+[INFO] Running A* path planning...
+Start: (12.882, 77.612)
+Goal : (12.905, 77.643)
+
+Explored nodes: 134
+Path length     : 2.42 km
+Estimated time  : 05m 12s
+
+[RESULT] Optimal path generated with 18 checkpoints.
+
+4. Transaction output after storing a drone event
+
+[BLOCKCHAIN] Connecting to Ethereum test network...
+[BLOCKCHAIN] Smart contract loaded successfully.
+
+Sending event to blockchain:
+{
+   "droneId": "DRN-2025-A17",
+   "event": "INTRUSION_DETECTED",
+   "confidence": 0.91
+}
+
+[BLOCKCHAIN] Transaction Hash: 0xa43f9b8f1c20398d8a39f...
+[BLOCKCHAIN] Block Number: 1745832
+[BLOCKCHAIN] Gas Used: 51,121
+
+[SUCCESS] Event securely stored on blockchain.
+
+5. Alert triggered when drone detects a threat
+
+[ALERT] Threat detected: Intrusion
+[ALERT] Drone ID: DRN-2025-A17
+[ALERT] Confidence: 0.92
+
+Sending SMS alert to Control Room...
+Sending push notification to Dashboard...
+Updating live map marker...
+
+[SUCCESS] Alerts delivered successfully.
+
+6. Text output for a single processed frame
+
+Frame 142
+Objects detected:
+ - Person        : 0.89
+ - Vehicle       : 0.93
+ - Suspicious Bag: 0.72
+
+Decision: Increase altitude by 10m
+Action: Sending control command to flight controller
+
+7. Sample Prediction Output
+Input State:
+- Altitude: 13.2 m
+- Distance to Obstacle: 2.1 m
+- Battery: 71%
+- Velocity: 4.7 m/s
+- Wind Speed: 3.2 m/s
+- Edge Processing Delay: 12 ms
+
+Predicted Optimal Action → Turn_Right_20°
+Action Confidence → 92.7%
+Expected Reward → +4.18
+Estimated Energy Cost → 0.42%
+Recommended by DRL-Agent and validated by Edge Node.
+
+8. Sample Blockchain Ledger Entry
+
+---------------------------------------------------------
+Block ID: 245
+Timestamp: 2025-01-12 12:33:51
+Drone ID: DR-07
+Mission Event: Obstacle Avoidance
+Event Details: Avoided object at (17.4128, 78.4357)
+Previous Hash: 72abff90cd1de472a6b4...
+Current Hash: 09bc22de19014f232a20...
+Signature Valid: TRUE
+Consensus: Approved by 6/6 nodes
+---------------------------------------------------------
+
+9. Sample Federated Learning Output
+
+[Round 1] Client Updates Received: 5
+Client Weights: [Node1, Node2, Node3, Node4, Node5]
+Performing Federated Averaging...
+Global Model Accuracy → 82.14%
+---
+[Round 2] Client Updates Received: 5
+Global Model Accuracy → 86.92%
+---
+[Round 3] Client Updates Received: 5
+Global Model Accuracy → 89.47%
+Model improving — Convergence point approaching.
+
+10. Sample DRL Training Output
+
+Episode: 112
+Total Steps: 500
+Reward: 318.42
+Collisions: 0
+Energy Consumed: 12.9%
+Training Loss: 0.00671
+---
+Episode: 113
+Total Steps: 500
+Reward: 325.11
+Collisions: 0
+Energy Consumed: 11.4%
+Training Loss: 0.00612
+---
+Episode: 114
+Total Steps: 500
+Reward: 331.87
+Collisions: 1 (soft impact)
+Energy Consumed: 14.1%
+Training Loss: 0.00598
+
+
