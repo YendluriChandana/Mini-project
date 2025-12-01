@@ -1,4 +1,4 @@
-Data Drone Preprocessing Code 
+1. Data Drone Preprocessing Code 
 
 import cv2
 import numpy as np
@@ -50,7 +50,7 @@ model.summary()
 # Dummy training
 # model.fit(train_x, train_y, validation_data=(val_x, val_y), epochs=20)
 
-Real-Time Drone Video Detection Code
+2. Real-Time Drone Video Detection Code
 
 import cv2
 import numpy as np
@@ -84,7 +84,7 @@ while True:
 cap.release()
 cv2.destroyAllWindows()
 
-Blockchain Log Entry for Detection Events
+3. Blockchain Log Entry for Detection Events
 
 
 import hashlib
@@ -119,7 +119,8 @@ chain.add_event("Drone detected suspicious object at coordinates (18.55, 73.12)"
 chain.add_event("Drone flagged unsafe movement pattern")
 
 print("Blockchain Updated. Total Blocks:", len(chain.chain))
-Human Detection
+
+4. Human Detection
 
 # human_detection.py using MobileNet SSD (Caffe)
 import cv2
@@ -143,7 +144,8 @@ while True:
     if cv2.waitKey(1) & 0xFF == ord('q'): break
 cap.release(); cv2.destroyAllWindows()
 
-Crowd Density Estimation
+5. Crowd Density Estimation
+
 # crowd_density.py (simple heatmap)
 import cv2
 import numpy as np
@@ -154,7 +156,8 @@ for (x,y) in centroids:
 heatmap = cv2.applyColorMap((np.clip(heat,0,1)*255).astype('uint8'), cv2.COLORMAP_JET)
 overlay = cv2.addWeighted(frame, 0.6, heatmap, 0.4, 0)
 
-CNN Classification (Keras) 
+6. CNN Classification (Keras) 
+
 # model_train.py
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -179,7 +182,7 @@ val_it = ImageDataGenerator(rescale=1./255).flow_from_directory("data/val", targ
 model.fit(train_it, validation_data=val_it, epochs=10)
 model.save("drone_classifier.h5")
 
-Reinforcement Learning for Drone Navigation 
+7. Reinforcement Learning for Drone Navigation 
 
 # rl_train.py (using stable-baselines3)
 # pip install stable-baselines3[extra] gym
@@ -210,7 +213,7 @@ model = PPO("MlpPolicy", env, verbose=1)
 model.learn(total_timesteps=10000)
 model.save("ppo_drone")
 
-Anomaly Detection 
+8. Anomaly Detection 
 
 # telemetry_anomaly.py
 import numpy as np
@@ -223,14 +226,14 @@ clf.fit(X)
 preds = clf.predict(X)  # -1 anomaly, 1 normal
 
 
- Preprocessing + Noise Removal
+9. Preprocessing + Noise Removal
 
 import cv2
 img = cv2.imread("frame.jpg")
 denoised = cv2.fastNlMeansDenoisingColored(img, None, 10,10,7,21)
 cv2.imwrite("denoised.jpg", denoised)
 
-Real-Time Prediction from Drone Camera
+10. Real-Time Prediction from Drone Camera
 
 # real_time_infer.py using ultralytics
 from ultralytics import YOLO
@@ -248,7 +251,7 @@ while True:
     if cv2.waitKey(1) & 0xFF == ord('q'): break
 cap.release(); cv2.destroyAllWindows()
 
-Geo-Location Tagging
+11. Geo-Location Tagging
 
 # geotag.py
 def tag_detection(det_bbox, image_shape, gps_lat, gps_lon, alt, camera_fov=90):
@@ -262,7 +265,7 @@ def tag_detection(det_bbox, image_shape, gps_lat, gps_lon, alt, camera_fov=90):
     deg_offset = meters_offset / 111000.0
     return gps_lat, gps_lon + deg_offset
 
-Risk Level Prediction
+12. Risk Level Prediction
 
 # risk_assessment.py
 def compute_risk(detections, battery_level, proximity_m):
@@ -277,7 +280,7 @@ def compute_risk(detections, battery_level, proximity_m):
     risk -= min(20, proximity_m/5)
     return min(100, max(0, risk))
 
-Alert System
+13. Alert System
 # alert_email.py
 import smtplib
 from email.mime.text import MIMEText
@@ -293,7 +296,7 @@ def send_alert(subject, body, to_addr):
     s.sendmail(msg['From'], [to_addr], msg.as_string())
     s.quit()
 
-Edge Device Model Optimization
+14. Edge Device Model Optimization
 # export to ONNX (PyTorch example)
 import torch
 model = torch.load("model.pt")
@@ -304,7 +307,7 @@ torch.onnx.export(model, dummy, "model.onnx", opset_version=12)
 
 (TensorRT / ONNX Quantization) separately.
 
-Simple Blockchain Event Logging
+15. Simple Blockchain Event Logging
 
 # blockchain_logging.py
 import hashlib, json, time
@@ -348,7 +351,7 @@ chain = SimpleChain()
 chain.add_block({"event":"detection","coords":[18.5,73.1],"obj":"person"})
 print(len(chain.chain))
 
- Drone Data Encryption 
+16.  Drone Data Encryption 
 # encrypt_data.py (uses cryptography)
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import os
@@ -368,7 +371,7 @@ key = AESGCM.generate_key(bit_length=128)
 cipher = encrypt(b"telemetry payload", key)
 print(decrypt(cipher, key))
 
-Secure Drone–Server Communication (JWT + Flask)
+17. Secure Drone–Server Communication (JWT + Flask)
 # auth_server.py
 from flask import Flask, request, jsonify
 import jwt, datetime
@@ -392,7 +395,7 @@ def data():
     # process encrypted data...
     return jsonify({"status":"ok"})
 
-Threat Zone Detection
+18. Threat Zone Detection
 
 if __name__ == '__main__':
     app.run(port=5000)
@@ -404,7 +407,7 @@ print(zone.contains(pt))
 
 
 
-Drone Autopilot Logic (pseudo)
+19. Drone Autopilot Logic (pseudo)
 
 # autopilot.py (very simplified)
 def autopilot_step(state, preds, battery):
