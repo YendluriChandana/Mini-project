@@ -76,7 +76,7 @@ Google Colab / VS Code / Jupyter No
 
 ## Output:
 
-Training for Drone Navigation LSTM Model
+### Training for Drone Navigation LSTM Model
 
 
 [INFO] Training sequence model for drone decision-making...
@@ -97,7 +97,7 @@ Epoch 20/20
 [SUCCESS] Model training completed and saved as drone_model.h5
 
 
-Console output after running detection script
+### Console output after running detection script
 
 
 [INFO] Loading YOLOv8 model...
@@ -113,7 +113,7 @@ Frame 005: ALERT: Intrusion zone breached!
 [INFO] Saving annotated result to output/drone_feed_result.mp4
 
 
-Sample Optimal Path Calculation
+### Sample Optimal Path Calculation
 
 [INFO] Running A* path planning...
 Start: (12.882, 77.612)
@@ -125,12 +125,12 @@ Estimated time  : 05m 12s
 
 [RESULT] Optimal path generated with 18 checkpoints.
 
-Transaction output after storing a drone event
+### Transaction output after storing a drone event
 
 [BLOCKCHAIN] Connecting to Ethereum test network...
 [BLOCKCHAIN] Smart contract loaded successfully.
 
-Sending event to blockchain:
+### Sending event to blockchain:
 {
    "droneId": "DRN-2025-A17",
    "event": "INTRUSION_DETECTED",
@@ -142,7 +142,7 @@ Sending event to blockchain:
 [BLOCKCHAIN] Gas Used: 51,121
 
 [SUCCESS] Event securely stored on blockchain.
-Alert triggered when drone detects a threat
+### Alert triggered when drone detects a threat
 
 [ALERT] Threat detected: Intrusion
 [ALERT] Drone ID: DRN-2025-A17
@@ -154,7 +154,7 @@ Updating live map marker...
 
 [SUCCESS] Alerts delivered successfully.
 
-Text output for a single processed frame
+### Text output for a single processed frame
 
 Frame 142
 Objects detected:
