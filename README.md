@@ -165,12 +165,8 @@ Objects detected:
 Decision: Increase altitude by 10m
 Action: Sending control command to flight controller
 
-<img width="238" height="118" alt="Screenshot 2025-12-01 213543" src="https://github.com/user-attachments/assets/4a7a7531-673b-4984-b029-bdd3378b7a8f" />
+<img width="585" height="637" alt="image" src="https://github.com/user-attachments/assets/049a65df-d6dd-424a-8079-0563b31c4729" />
 
-
-<img width="209" height="116" alt="Screenshot 2025-12-01 213549" src="https://github.com/user-attachments/assets/d0a76f87-ec56-48c1-9f67-2b72f0ce3d14" />
-
-<img width="232" height="112" alt="Screenshot 2025-12-01 213559" src="https://github.com/user-attachments/assets/c30eb618-7da9-4cf8-a8b0-2056ebe2b926" />
 
 ## Results and Impact
 
