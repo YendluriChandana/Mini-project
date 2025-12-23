@@ -1,419 +1,622 @@
-1. Data Drone Preprocessing Code 
-
-import cv2
+Code 1:
+import os, math, json, hashlib, random, csv, shutil
+from datetime import datetime
 import numpy as np
-import os
-
-def preprocess_frame(frame):
-    # Resize
-    frame = cv2.resize(frame, (224, 224))
-    # Normalize
-    frame = frame / 255.0
-    return frame
-
-path = "drone_dataset/"
-processed = []
-
-for img_name in os.listdir(path):
-    img = cv2.imread(os.path.join(path, img_name))
-    img = preprocess_frame(img)
-    processed.append(img)
-
-np.save("processed_drone_data.npy", np.array(processed))
-print("Preprocessing Completed!")
-
-CNN Model Training Code (Object Detection / Classification)
+from PIL import Image, ImageDraw, ImageFont
+import matplotlib.pyplot as plt
 
 
-import tensorflow as tf
-from tensorflow.keras.layers import Conv2D, MaxPool2D, Dense, Flatten
-from tensorflow.keras.models import Sequential
+OUT_DIR = '/content/advanced_dqn_step_artifacts'
+if os.path.exists('/mnt/data'):
+    OUT_DIR = '/mnt/data/advanced_dqn_step_artifacts'
+os.makedirs(OUT_DIR, exist_ok=True)
+print('Artifacts folder:', OUT_DIR)
 
-model = Sequential([
-    Conv2D(32, (3,3), activation='relu', input_shape=(224,224,3)),
-    MaxPool2D(2,2),
 
-    Conv2D(64, (3,3), activation='relu'),
-    MaxPool2D(2,2),
 
-    Conv2D(128, (3,3), activation='relu'),
-    MaxPool2D(2,2),
 
-    Flatten(),
-    Dense(128, activation='relu'),
-    Dense(2, activation='softmax')  # Real / Fake object or Danger / Safe
-])
+Code 2:
 
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-model.summary()
 
-# Dummy training
-# model.fit(train_x, train_y, validation_data=(val_x, val_y), epochs=20)
+# Cell 3: Quiz - Expected short answers (printable)
+answers = {
+  1: "Training curve = episode reward over time; shows learning progress.",
+  2: "Offload when uncertain to use a larger edge model for more reliable decision at cost of latency.",
+  3: "Ledger provides tamper-evident record of critical decisions for auditability."
+}
+for q,a in answers.items():
+    print(f"{q}. {a}\n")
 
-2. Real-Time Drone Video Detection Code
 
-import cv2
+def render_image(self, scale=40):
+    img = Image.new('RGB', (self.size*scale, self.size*scale), 'white')
+    draw = ImageDraw.Draw(img)
+
+
+    for r in range(self.size):
+        for c in range(self.size):
+            x1,y1 = c*scale, r*scale
+            x2,y2 = x1+scale, y1+scale
+            draw.rectangle([x1,y1,x2,y2], outline='black')
+
+
+    for (r,c) in self.obstacles:
+        draw.rectangle([c*scale, r*scale, (c+1)*scale, (r+1)*scale], fill='black')
+
+
+    gr,gc = self.goal
+    draw.rectangle([gc*scale, gr*scale, (gc+1)*scale, (gr+1)*scale], fill='green')
+
+
+    r,c = self.pos
+    draw.ellipse([c*scale+8, r*scale+8, (c+1)*scale-8, (r+1)*scale-8], fill='red')
+
+
+    return img
+
+
+
+
+
+
+
+Code 3:
+def draw_grid(env, path, fname, cell=60, show=True):
+    size = env.size * cell
+    img = Image.new('RGB', (size, size), 'white')
+    draw = ImageDraw.Draw(img)
+
+
+    for r in range(env.size):
+        for c in range(env.size):
+            x0 = c*cell; y0 = r*cell; x1 = x0+cell; y1 = y0+cell
+            draw.rectangle([x0,y0,x1,y1], outline=(180,180,180))
+
+
+    for (r,c) in env.obstacles:
+        draw.rectangle([c*cell+8, r*cell+8, c*cell+cell-8, r*cell+cell-8], fill=(200,50,50))
+
+
+    for i,(r,c) in enumerate(path):
+        cx = c*cell + cell//2; cy = r*cell + cell//2; rad = cell//8
+        color = (50,150,50) if i==0 else (20,20,200) if i==len(path)-1 else (30,120,200)
+        draw.ellipse([cx-rad, cy-rad, cx+rad, cy+rad], fill=color)
+
+
+    img.save(fname)
+
+
+    if show:
+        plt.imshow(img)
+        plt.axis('off')
+        plt.show()
+
+
+    return fname
+
+
+Code 4:
+
+import math
 import numpy as np
-from tensorflow.keras.models import load_model
-
-model = load_model("drone_model.h5")
-
-def detect(frame):
-    img = cv2.resize(frame, (224, 224))
-    img = img / 255.0
-    img = np.expand_dims(img, axis=0)
-    prediction = model.predict(img)[0]
-    return prediction
-
-cap = cv2.VideoCapture("drone_live_feed.mp4")
-
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
-    
-    pred = detect(frame)
-    label = "Real Object" if pred[0] > pred[1] else "Fake Object"
-    
-    cv2.putText(frame, label, (20, 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255,0,0), 2)
-    cv2.imshow("Drone AI Detection", frame)
-    
-    if cv2.waitKey(1) == ord('q'):
-        break
-
-cap.release()
-cv2.destroyAllWindows()
-
-3. Blockchain Log Entry for Detection Events
 
 
-import hashlib
-import time
+def glorot_init(in_d, out_d, rng):
+    limit = math.sqrt(6.0/(in_d+out_d))
+    return rng.uniform(-limit, limit, size=(in_d, out_d))
+Code 5:
+class TinyMLP:
+    def __init__(self, sizes, seed=0):
+        rng = np.random.RandomState(seed)
+        self.sizes = sizes
+        self.params = {}
+        for i in range(len(sizes)-1):
+            self.params[f'W{i}'] = glorot_init(sizes[i], sizes[i+1], rng)
+            self.params[f'b{i}'] = np.zeros(sizes[i+1])
 
-class Block:
-    def __init__(self, index, timestamp, data, previous_hash):
-        self.index = index
-        self.timestamp = timestamp
-        self.data = data
-        self.previous_hash = previous_hash
-        self.hash = self.mine_block()
 
-    def mine_block(self):
-        value = f"{self.index}{self.timestamp}{self.data}{self.previous_hash}"
-        return hashlib.sha256(value.encode()).hexdigest()
+    def predict(self, x):
+        a = np.array(x)
+        if a.ndim == 1:
+            a = a.reshape(1, -1)
+        L = len(self.sizes) - 1
+        for i in range(L-1):
+            a = np.tanh(a.dot(self.params[f'W{i}']) + self.params[f'b{i}'])
+        z = a.dot(self.params[f'W{L-1}']) + self.params[f'b{L-1}']
+        return z
 
-class DroneBlockchain:
-    def __init__(self):
-        self.chain = [self.create_genesis_block()]
 
-    def create_genesis_block(self):
-        return Block(0, time.time(), "Genesis Block", "0")
 
-    def add_event(self, data):
-        last_block = self.chain[-1]
-        new_block = Block(len(self.chain), time.time(), data, last_block.hash)
-        self.chain.append(new_block)
 
-chain = DroneBlockchain()
-chain.add_event("Drone detected suspicious object at coordinates (18.55, 73.12)")
-chain.add_event("Drone flagged unsafe movement pattern")
+local = TinyMLP([env.size*env.size+2, 16, env.action_space], seed=6)
+edge  = TinyMLP([env.size*env.size+2, 64, 32, env.action_space], seed=7)
 
-print("Blockchain Updated. Total Blocks:", len(chain.chain))
 
-4. Human Detection
+s = env.reset()
+q_local = local.predict(s)[0]
+q_edge  = edge.predict(s)[0]
 
-# human_detection.py using MobileNet SSD (Caffe)
-import cv2
-net = cv2.dnn.readNetFromCaffe("deploy.prototxt", "mobilenet_iter_73000.caffemodel")
-cap = cv2.VideoCapture("drone_video.mp4")
-while True:
-    ret, frame = cap.read()
-    if not ret: break
-    blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300,300)), 0.007843, (300,300), 127.5)
-    net.setInput(blob)
-    detections = net.forward()
-    for i in range(detections.shape[2]):
-        conf = detections[0,0,i,2]
-        if conf > 0.5:
-            idx = int(detections[0,0,i,1])
-            # class idx for person often 15 depending on model; add check
-            box = detections[0,0,i,3:7] * np.array([frame.shape[1],frame.shape[0],frame.shape[1],frame.shape[0]])
-            (startX, startY, endX, endY) = box.astype("int")
-            cv2.rectangle(frame, (startX, startY), (endX, endY), (0,255,0), 2)
-    cv2.imshow("person", frame)
-    if cv2.waitKey(1) & 0xFF == ord('q'): break
-cap.release(); cv2.destroyAllWindows()
 
-5. Crowd Density Estimation
+print('q_local:', q_local)
+print('q_edge:', q_edge)
 
-# crowd_density.py (simple heatmap)
-import cv2
+
+plt.figure(figsize=(5,2.5))
+plt.bar(range(len(q_local)), q_local, alpha=0.7, label='local')
+plt.bar(range(len(q_edge)), q_edge, alpha=0.4, label='edge')
+plt.legend()
+plt.title('Step 04: Local vs Edge Q-values')
+plt.tight_layout()
+
+
+save_path = os.path.join(OUT_DIR,'step04_q_compare.png')
+plt.savefig(save_path)
+plt.show()          # 🔥 THIS LINE WAS MISSING
+plt.close()
+
+
+print('Saved Q compare image:', save_path)
+
+
+Code 5:
+
+
+from PIL import Image, ImageDraw
+
+
+def draw_grid(env, path, save_path):
+    cell = 60
+    W = env.size * cell
+    H = env.size * cell
+
+
+    img = Image.new('RGB', (W, H), 'white')
+    d = ImageDraw.Draw(img)
+
+
+    # 🔲 DRAW GRID OUTLINE (THIS WAS MISSING)
+    for i in range(env.size):
+        for j in range(env.size):
+            x1 = j * cell
+            y1 = i * cell
+            x2 = x1 + cell
+            y2 = y1 + cell
+            d.rectangle([x1, y1, x2, y2], outline='black', width=2)
+
+
+    # DRAW PATH
+    for (r, c) in path:
+        cx = c * cell + cell // 2
+        cy = r * cell + cell // 2
+        d.ellipse(
+            [cx-10, cy-10, cx+10, cy+10],
+            fill='red'
+        )
+
+
+    img.save(save_path)
+    return save_path
+
+
+
+
+import os, math, random, csv, json, hashlib
 import numpy as np
-# assume you have centroids list for each frame
-heat = np.zeros((720,1280), dtype=np.float32)
-for (x,y) in centroids:
-    cv2.circle(heat, (x,y), 30, 1, -1)
-heatmap = cv2.applyColorMap((np.clip(heat,0,1)*255).astype('uint8'), cv2.COLORMAP_JET)
-overlay = cv2.addWeighted(frame, 0.6, heatmap, 0.4, 0)
+import matplotlib.pyplot as plt
+from datetime import datetime
+from PIL import Image, ImageDraw, ImageFont
+from IPython.display import display
 
-6. CNN Classification (Keras) 
 
-# model_train.py
-import tensorflow as tf
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.applications import EfficientNetB0
-from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, Dropout
-from tensorflow.keras.models import Model
 
-base = EfficientNetB0(weights='imagenet', include_top=False, input_shape=(224,224,3))
-x = base.output
-x = GlobalAveragePooling2D()(x)
-x = Dropout(0.3)(x)
-preds = Dense(3, activation='softmax')(x)
-model = Model(inputs=base.input, outputs=preds)
-for layer in base.layers: layer.trainable = False
 
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-train_gen = ImageDataGenerator(rescale=1./255, rotation_range=15, horizontal_flip=True)
-train_it = train_gen.flow_from_directory("data/train", target_size=(224,224), batch_size=16, class_mode='categorical')
-val_it = ImageDataGenerator(rescale=1./255).flow_from_directory("data/val", target_size=(224,224), batch_size=16, class_mode='categorical')
 
-model.fit(train_it, validation_data=val_it, epochs=10)
-model.save("drone_classifier.h5")
+OUT_DIR = '/content/output'
+os.makedirs(OUT_DIR, exist_ok=True)
+print("Output folder ready:", OUT_DIR)
 
-7. Reinforcement Learning for Drone Navigation 
 
-# rl_train.py (using stable-baselines3)
-# pip install stable-baselines3[extra] gym
+Code 6:
 
-import gym
-import numpy as np
-from stable_baselines3 import PPO
-from stable_baselines3.common.envs import DummyVecEnv
 
-class SimpleDroneEnv(gym.Env):
-    def __init__(self):
-        super().__init__()
-        self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(10,), dtype=np.float32)
-        self.action_space = gym.spaces.Box(low=-1, high=1, shape=(3,), dtype=np.float32) # vx, vy, vz
+class GridDroneEnv:
+    def __init__(self, size=6, start=(0,0), goal=(5,5)):
+        self.size = size
+        self.start = start
+        self.goal = goal
+        self.action_space = 4
+        self.reset()
+
 
     def reset(self):
-        self.state = np.zeros(10, dtype=np.float32)
-        return self.state
-
-    def step(self, action):
-        # simulate a step: update state, compute reward
-        done = False
-        reward = -np.linalg.norm(self.state[:3]) # dummy
-        return self.state, reward, done, {}
-
-env = DummyVecEnv([lambda: SimpleDroneEnv()])
-model = PPO("MlpPolicy", env, verbose=1)
-model.learn(total_timesteps=10000)
-model.save("ppo_drone")
-
-8. Anomaly Detection 
-
-# telemetry_anomaly.py
-import numpy as np
-from sklearn.ensemble import IsolationForest
-
-# X: telemetry features e.g., [speed, altitude, accel_x, accel_y, gps_accuracy]
-X = np.load("telemetry.npy")
-clf = IsolationForest(contamination=0.01)
-clf.fit(X)
-preds = clf.predict(X)  # -1 anomaly, 1 normal
+        self.pos = self.start
+        return self._state()
+Code 7:
+    def _state(self):
+        s = np.zeros(self.size*self.size + 2)
+        s[self.pos[0]*self.size + self.pos[1]] = 1
+        s[-2:] = self.pos
+        return s
 
 
-9. Preprocessing + Noise Removal
+    # ⚠️ NOTE: move(), NOT step()
+    def move(self, a):
+        r, c = self.pos
+        if a == 0 and r > 0: r -= 1
+        if a == 1 and r < self.size-1: r += 1
+        if a == 2 and c > 0: c -= 1
+        if a == 3 and c < self.size-1: c += 1
+        self.pos = (r, c)
+        done = self.pos == self.goal
+        reward = 10 if done else -1
+        return self._state(), reward, done
 
-import cv2
-img = cv2.imread("frame.jpg")
-denoised = cv2.fastNlMeansDenoisingColored(img, None, 10,10,7,21)
-cv2.imwrite("denoised.jpg", denoised)
 
-10. Real-Time Prediction from Drone Camera
+    def render_ascii(self, path):
+        g = [['.' for _ in range(self.size)] for _ in range(self.size)]
+        for r,c in path: g[r][c] = '*'
+        g[self.goal[0]][self.goal[1]] = 'G'
+        return '\n'.join(' '.join(row) for row in g)
 
-# real_time_infer.py using ultralytics
-from ultralytics import YOLO
-import cv2
 
-model = YOLO("runs/detect/train/weights/best.pt")  # your trained weights
-cap = cv2.VideoCapture(0)  # or path/rtsp stream
+print("Environment class defined")
 
-while True:
-    ret, frame = cap.read()
-    if not ret: break
-    results = model.predict(source=frame, conf=0.4, verbose=False)
-    annot = results[0].plot()  # annotated image
-    cv2.imshow("det", annot)
-    if cv2.waitKey(1) & 0xFF == ord('q'): break
-cap.release(); cv2.destroyAllWindows()
 
-11. Geo-Location Tagging
 
-# geotag.py
-def tag_detection(det_bbox, image_shape, gps_lat, gps_lon, alt, camera_fov=90):
-    # naive approach: map bbox center to bearing offset using camera FOV
-    center_x = (det_bbox[0] + det_bbox[2]) / 2.0
-    img_w = image_shape[1]
-    angle_offset = (center_x - img_w/2) / (img_w/2) * (camera_fov/2)
-    # rough estimate: small offset ~ convert to deg by altitude
-    meters_offset = alt * np.tan(np.deg2rad(angle_offset))
-    # convert meters to degrees (approx)
-    deg_offset = meters_offset / 111000.0
-    return gps_lat, gps_lon + deg_offset
 
-12. Risk Level Prediction
+Code 8:
 
-# risk_assessment.py
-def compute_risk(detections, battery_level, proximity_m):
-    risk = 0
-    for d in detections:
-        if d['class'] == 'person':
-            risk += 50
-        elif d['class'] == 'vehicle':
-            risk += 30
-    if battery_level < 20:
-        risk += 30
-    risk -= min(20, proximity_m/5)
-    return min(100, max(0, risk))
 
-13. Alert System
-# alert_email.py
-import smtplib
-from email.mime.text import MIMEText
+def glorot_init(in_d, out_d, rng):
+    limit = math.sqrt(6.0/(in_d+out_d))
+    return rng.uniform(-limit, limit, size=(in_d, out_d))
 
-def send_alert(subject, body, to_addr):
-    msg = MIMEText(body)
-    msg['Subject'] = subject
-    msg['From'] = "drone.system@example.com"
-    msg['To'] = to_addr
-    s = smtplib.SMTP("smtp.example.com", 587)
-    s.starttls()
-    s.login("user", "pass")
-    s.sendmail(msg['From'], [to_addr], msg.as_string())
-    s.quit()
 
-14. Edge Device Model Optimization
-# export to ONNX (PyTorch example)
-import torch
-model = torch.load("model.pt")
-dummy = torch.randn(1,3,640,640)
-torch.onnx.export(model, dummy, "model.onnx", opset_version=12)
+class TinyMLP:
+    def __init__(self, sizes, seed=0):
+        rng = np.random.RandomState(seed)
+        self.sizes = sizes
+        self.params = {}
+        for i in range(len(sizes)-1):
+            self.params[f'W{i}'] = glorot_init(sizes[i], sizes[i+1], rng)
+            self.params[f'b{i}'] = np.zeros(sizes[i+1])
 
-# Use onnxruntime + quantization tools (TensorRT / ONNX Quantization) separately.
 
-(TensorRT / ONNX Quantization) separately.
+    def predict(self, x):
+        a = np.array(x)
+        if a.ndim == 1:
+            a = a.reshape(1, -1)
+        for i in range(len(self.sizes)-2):
+            a = np.tanh(a @ self.params[f'W{i}'] + self.params[f'b{i}'])
+        return a @ self.params[f'W{len(self.sizes)-2}'] + self.params[f'b{len(self.sizes)-2}']
 
-15. Simple Blockchain Event Logging
 
-# blockchain_logging.py
-import hashlib, json, time
+print("TinyMLP defined")
 
-class Block:
-    def __init__(self, index, timestamp, data, previous_hash):
-        self.index = index
-        self.timestamp = timestamp
-        self.data = data
-        self.previous_hash = previous_hash
-        self.nonce = 0
-        self.hash = self.compute_hash()
 
-    def compute_hash(self):
-        block_string = json.dumps({
-            "index": self.index,
-            "timestamp": self.timestamp,
-            "data": self.data,
-            "previous_hash": self.previous_hash,
-            "nonce": self.nonce
-        }, sort_keys=True).encode()
-        return hashlib.sha256(block_string).hexdigest()
 
-class SimpleChain:
-    def __init__(self):
-        self.chain = [self.create_genesis()]
 
-    def create_genesis(self):
-        return Block(0, time.time(), "genesis", "0")
 
-    def add_block(self, data):
-        last = self.chain[-1]
-        block = Block(len(self.chain), time.time(), data, last.hash)
-        # naive proof-of-work
-        while not block.hash.startswith('0000'):
-            block.nonce += 1
-            block.hash = block.compute_hash()
-        self.chain.append(block)
 
-chain = SimpleChain()
-chain.add_block({"event":"detection","coords":[18.5,73.1],"obj":"person"})
-print(len(chain.chain))
 
-16.  Drone Data Encryption 
-# encrypt_data.py (uses cryptography)
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-import os
 
-def encrypt(plaintext: bytes, key: bytes):
-    aesgcm = AESGCM(key)
-    nonce = os.urandom(12)
-    ct = aesgcm.encrypt(nonce, plaintext, None)
-    return nonce + ct
+Code 9:
 
-def decrypt(data: bytes, key: bytes):
-    nonce = data[:12]
-    ct = data[12:]
-    return AESGCM(key).decrypt(nonce, ct, None)
 
-key = AESGCM.generate_key(bit_length=128)
-cipher = encrypt(b"telemetry payload", key)
-print(decrypt(cipher, key))
+def draw_grid(env, path, fname):
+    cell = 60
+    img = Image.new('RGB', (env.size*cell, env.size*cell), 'white')
+    d = ImageDraw.Draw(img)
 
-17. Secure Drone–Server Communication (JWT + Flask)
-# auth_server.py
-from flask import Flask, request, jsonify
-import jwt, datetime
 
-app = Flask(__name__)
-SECRET="your_secret_key"
+    # grid lines
+    for i in range(env.size+1):
+        d.line((0, i*cell, env.size*cell, i*cell), fill='black')
+        d.line((i*cell, 0, i*cell, env.size*cell), fill='black')
 
-@app.route('/token', methods=['POST'])
-def token():
-    payload = {"drone_id": request.json['drone_id'], "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=30)}
-    token = jwt.encode(payload, SECRET, algorithm="HS256")
-    return jsonify({"token": token})
 
-@app.route('/data', methods=['POST'])
-def data():
-    token = request.headers.get('Authorization', '').split("Bearer ")[-1]
+    # path
+    for r,c in path:
+        d.rectangle(
+            [c*cell+10, r*cell+10, c*cell+cell-10, r*cell+cell-10],
+            fill=(135,206,235)
+        )
+
+
+    # goal
+    gr,gc = env.goal
+    d.rectangle(
+        [gc*cell+10, gr*cell+10, gc*cell+cell-10, gr*cell+cell-10],
+        fill='green'
+    )
+
+
+    img.save(fname)
+    return fname
+
+
+
+
+s = env.reset()
+path = [env.pos]
+done = False
+
+
+while not done:
+    a = int(np.argmax(local.predict(s)[0]))
+    s, r, done = env.move(a)
+    path.append(env.pos)
+
+
+pfile = draw_grid(env, path, os.path.join(OUT_DIR, 'step06_path.png'))
+
+
+display(Image.open(pfile))
+print("\nASCII:\n")
+print(env.render_ascii(path))
+
+
+Code 10:
+
+
+
+
+from IPython.display import display
+from PIL import Image
+
+
+ledger_path = os.path.join(OUT_DIR, 'step07_ledger.csv')
+
+
+with open(ledger_path, 'w') as f:
+    f.write('block,ts,tx_count,hash,prev\n')
+
+
+prev = '0'*64
+for i in range(3):
+    txs = [{'id':j, 'h': hashlib.sha256(f'{i}-{j}'.encode()).hexdigest()} for j in range(4)]
+    body = json.dumps({'i':i, 'txs':txs})
+    h = hashlib.sha256((prev + body).encode()).hexdigest()
+    with open(ledger_path, 'a') as f:
+        f.write(f'{i},{datetime.utcnow().isoformat()},{len(txs)},{h},{prev}\n')
+    prev = h
+
+
+print('Saved ledger CSV:', ledger_path)
+
+
+# Create preview image
+with open(ledger_path,'r') as f:
+    lines = f.read().splitlines()[:6]
+
+
+img = Image.new('RGB', (900, 140), 'white')
+d = ImageDraw.Draw(img)
+d.text((10,10),'Ledger preview (first lines):', fill='black')
+
+
+y = 32
+for L in lines:
+    d.text((10,y), L, fill='black')
+    y += 18
+
+
+img_path = os.path.join(OUT_DIR,'step07_ledger_preview.png')
+img.save(img_path)
+
+
+#  THIS IS WHAT WAS MISSING
+display(img)
+
+
+print('Saved ledger preview image:', img_path)
+
+
+
+
+
+
+Code 11:
+
+
+from IPython.display import display
+from PIL import Image
+
+
+replay_csv = os.path.join(OUT_DIR, 'step08_replay_sample.csv')
+
+
+with open(replay_csv, 'w', newline='') as f:
+    w = csv.writer(f)
+    w.writerow(['state_snippet','action','reward','done'])
+    for i in range(20):
+        w.writerow([str(list(range(5)))+'...', random.randrange(env.action_space),
+                    random.uniform(-5,20), False])
+
+
+print('Saved replay sample CSV:', replay_csv)
+
+
+# Preview image
+with open(replay_csv,'r') as f:
+    txt = f.read().splitlines()[:8]
+
+
+img = Image.new('RGB', (900,160), 'white')
+d = ImageDraw.Draw(img)
+d.text((10,10),'Replay sample (first lines):', fill='black')
+
+
+y = 30
+for L in txt:
+    d.text((10,y), L, fill='black')
+    y += 16
+
+
+img_path = os.path.join(OUT_DIR,'step08_replay_preview.png')
+img.save(img_path)
+
+
+#  THIS WAS MISSING
+display(img)
+
+
+print('Saved replay preview image:', img_path)
+
+
+
+
+Code 12:
+
+
+from IPython.display import display
+from PIL import Image
+
+
+env2 = GridDroneEnv(size=7, obstacles={(2,2),(3,2),(4,4),(1,5)}, start=(0,0), goal=(6,6))
+obs_dim = env2.size*env2.size + 2
+net_final = TinyMLP([obs_dim, 128, 64, env2.action_space], seed=21)
+
+
+rewards_final = []
+
+
+for ep in range(1,61):
+    s = env2.reset(); done=False; ep_r = 0
+    while not done:
+        a = int(np.argmax(net_final.predict(s)[0]))
+        if random.random() < 0.12:
+            a = random.randrange(env2.action_space)
+        s, r, done, _ = env2.step(a)
+        ep_r += r
+    rewards_final.append(ep_r)
+    if ep % 10 == 0:
+        print('Ep', ep, 'mean reward so far', sum(rewards_final)/len(rewards_final))
+
+
+# 🔹 Reward curve
+plt.figure(figsize=(6,3))
+plt.plot(rewards_final)
+plt.title('Final-run: Reward curve')
+curve_path = os.path.join(OUT_DIR,'step11_final_curve.png')
+plt.savefig(curve_path)
+plt.show()              # MISSING LINE
+plt.close()
+
+
+# 🔹 Final path
+s = env2.reset()
+path = [env2.pos]
+d = False
+while not d:
+    a = int(np.argmax(net_final.predict(s)[0]))
+    s, _, d, _ = env2.step(a)
+    path.append(env2.pos)
+
+
+path_img = draw_grid(env2, path, os.path.join(OUT_DIR,'step11_final_path.png'))
+display(Image.open(path_img))   #  MISSING LINE
+
+
+# 🔹 Stats
+with open(os.path.join(OUT_DIR,'step11_final_stats.txt'),'w') as f:
+    f.write('episodes:60\nmean_reward:'+str(sum(rewards_final)/len(rewards_final)))
+
+
+print('Saved final artifacts in', OUT_DIR)
+
+
+
+
+Code 13:
+
+from IPython.display import display
+from PIL import Image, ImageFont
+
+
+def save_comparison_venn(fname):
+    size = 640
+    img = Image.new('RGB', (size,size), 'white')
+    d = ImageDraw.Draw(img)
+    cx1, cy = 200, 320; cx2 = 420; r = 150
+    d.ellipse([cx1-r, cy-r, cx1+r, cy+r], outline=(70,130,180), width=6)
+    d.ellipse([cx2-r, cy-r, cx2+r, cy+r], outline=(180,80,120), width=6)
     try:
-        payload = jwt.decode(token, SECRET, algorithms=["HS256"])
-    except Exception as e:
-        return jsonify({"error":"invalid token"}), 401
-    # process encrypted data...
-    return jsonify({"status":"ok"})
+        font = ImageFont.truetype('DejaVuSans-Bold.ttf', 16)
+    except:
+        font = ImageFont.load_default()
+    d.text((cx1-60, cy-170), 'Previous work', fill=(70,130,180), font=font)
+    d.text((cx2-40, cy-170), 'Our work', fill=(180,80,120), font=font)
+    left=['DRL navigation','Simulated envs','Stability tricks']
+    right=['Edge offload','Blockchain logging','End-to-end code']
+    overlap=['Navigation + offload','Auditability']
+    y = cy-30
+    for t in left:
+        d.text((50,y), '• '+t, fill='black', font=font); y+=20
+    y = cy-30
+    for t in right:
+        d.text((430,y), '• '+t, fill='black', font=font); y+=20
+    y = cy+70
+    for t in overlap:
+        d.text((265,y), '• '+t, fill='black', font=font); y+=20
+    img.save(fname)
+    return fname
 
-18. Threat Zone Detection
 
-if __name__ == '__main__':
-    app.run(port=5000)
-# geofence_check.py
-from shapely.geometry import Point, Polygon
-zone = Polygon([(0,0),(0,10),(10,10),(10,0)])
-pt = Point(5,5)
-print(zone.contains(pt))
+Code 14:
 
 
+def save_comparison_table(fname):
+    cols = ['Feature','Previous works','This project']
+    rows = [
+        ('Navigation by DRL','Yes','Yes'),
+        ('Uncertainty-aware offload','Sometimes','Yes'),
+        ('Blockchain audit','Some proposals','Yes (simulated)'),
+        ('Reproducible code','Rare','Yes (Colab)'),
+        ('Stepwise images for paper','No','Yes'),
+    ]
+    try:
+        font = ImageFont.truetype('DejaVuSans.ttf', 14)
+    except:
+        font = ImageFont.load_default()
+    padding = 12; col_w = [240, 220, 220]; row_h = 36
+    w = sum(col_w) + 2*padding
+    h = (len(rows)+1)*row_h + 2*padding
+    img = Image.new('RGB', (w, h), 'white')
+    d = ImageDraw.Draw(img)
 
-19. Drone Autopilot Logic (pseudo)
 
-# autopilot.py (very simplified)
-def autopilot_step(state, preds, battery):
-    if battery < 15:
-        return {"cmd":"return_home"}
-    for p in preds:
-        if p['class']=='obstacle' and p['distance'] < 5:
-            return {"cmd":"avoid","vector": [1,0,0]}
-    return {"cmd":"continue"}
+    x = padding; y = padding
+    for i,c in enumerate(cols):
+        d.rectangle([x, y, x+col_w[i], y+row_h],
+                    fill=(200,200,255) if i==0 else (230,230,230),
+                    outline='black')
+        d.text((x+8, y+8), c, fill='black', font=font)
+        x += col_w[i]
+    y += row_h
+
+
+    for r in rows:
+        x = padding
+        for i,cell in enumerate(r):
+            d.rectangle([x, y, x+col_w[i], y+row_h], outline='black')
+            d.text((x+8, y+8), str(cell), fill='black', font=font)
+            x += col_w[i]
+        y += row_h
+
+
+    img.save(fname)
+    return fname
+
+
+vfname = save_comparison_venn(os.path.join(OUT_DIR,'comparison_venn.png'))
+tfname = save_comparison_table(os.path.join(OUT_DIR,'comparison_table.png'))
+
+
+#  DISPLAY (THIS WAS MISSING)
+display(Image.open(vfname))
+display(Image.open(tfname))
+
+
+print('Saved comparison images:', vfname, tfname)
